@@ -154,6 +154,7 @@
         <!-- Used for integration tests, to make sure webjars work-->
         <bootstrap.version>3.1.0</bootstrap.version>
         <keycloak.version>6.0.0</keycloak.version>
+        <submarine.version>8.0.0-SNAPSHOT</submarine.version>
     </properties>
 
     <dependencyManagement>
@@ -443,7 +444,11 @@
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
+<<<<<<< HEAD
                 <artifactId>quarkus-keycloak</artifactId>
+=======
+                <artifactId>quarkus-drools</artifactId>
+>>>>>>> quarkus extension for drools
                 <version>${project.version}</version>
             </dependency>
 

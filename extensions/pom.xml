@@ -106,6 +106,9 @@
 
         <!-- Database migrations -->
         <module>flyway</module>
+
+        <!-- Drools -->
+        <module>drools</module>
     </modules>
 
 </project>
