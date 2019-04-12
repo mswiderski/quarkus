@@ -40,7 +40,7 @@ jobs:
     displayName: 'Maven Build'
     inputs:
       goals: 'install'
-      options: '-B --settings azure-mvn-settings.xml -Dnative-image.docker-build -Dtest-postgresql -Dnative-image.xmx=6g -Dnative -Dno-format'
+      options: '-B -Dnative-image.docker-build -Dtest-postgresql -Dnative-image.xmx=6g -Dnative -Dno-format'
 
 - job: Windows_Build
   timeoutInMinutes: 60
@@ -56,7 +56,7 @@ jobs:
     displayName: 'Maven Build'
     inputs:
       goals: 'install'
-      options: '-B --settings azure-mvn-settings.xml -Dno-native -Dno-format'
+      options: '-B -Dno-native -Dno-format'
 
 - job: Build_JDK11_Linux
   timeoutInMinutes: 60
@@ -72,4 +72,4 @@ jobs:
     inputs:
       jdkVersionOption: '1.11'
       goals: 'install'
-      options: '-B --settings azure-mvn-settings.xml -Dno-native -Dno-format'
+      options: '-B -Dno-native -Dno-format'
