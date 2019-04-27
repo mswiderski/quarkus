@@ -27,8 +27,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>quarkus-drools-parent</artifactId>
-    <name>Quarkus - Drools</name>
+    <artifactId>quarkus-kie-parent</artifactId>
+    <name>Quarkus - KIE (Drools and jBPM)</name>
     <packaging>pom</packaging>
     <modules>
         <module>deployment</module>

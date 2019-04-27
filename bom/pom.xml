@@ -154,7 +154,7 @@
         <!-- Used for integration tests, to make sure webjars work-->
         <bootstrap.version>3.1.0</bootstrap.version>
         <keycloak.version>6.0.0</keycloak.version>
-        <submarine.version>8.0.0-SNAPSHOT</submarine.version>
+        <kie.version>8.0.0-SNAPSHOT</kie.version>
     </properties>
 
     <dependencyManagement>
@@ -444,11 +444,12 @@
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
-<<<<<<< HEAD
                 <artifactId>quarkus-keycloak</artifactId>
-=======
-                <artifactId>quarkus-drools</artifactId>
->>>>>>> quarkus extension for drools
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-kie</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -1800,11 +1801,35 @@
                 <artifactId>flyway-core</artifactId>
                 <version>${flyway.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.webjars</groupId>
                 <artifactId>bootstrap</artifactId>
                 <version>${bootstrap.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.kie</groupId>
+                <artifactId>submarine-codegen</artifactId>
+                <version>${kie.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.drools</groupId>
+                <artifactId>drools-core-static</artifactId>
+                <version>${kie.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.drools</groupId>
+                <artifactId>drools-compiler</artifactId>
+                <version>${kie.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.drools</groupId>
+               <artifactId>drools-canonical-model</artifactId>
+                <version>${kie.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.drools</groupId>
+                <artifactId>drools-model-compiler</artifactId>
+                <version>${kie.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
