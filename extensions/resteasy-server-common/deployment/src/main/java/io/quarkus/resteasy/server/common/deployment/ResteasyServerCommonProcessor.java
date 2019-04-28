@@ -176,6 +176,7 @@ public class ResteasyServerCommonProcessor {
             BuildProducer<ResteasyServerConfigBuildItem> resteasyServerConfig,
             BuildProducer<UnremovableBeanBuildItem> unremovableBeans,
             JaxrsProvidersToRegisterBuildItem jaxrsProvidersToRegisterBuildItem,
+            List<JaxRsResourceBuildItem> jaxRsResourceBuildItems,
             CombinedIndexBuildItem combinedIndexBuildItem) throws Exception {
         IndexView index = combinedIndexBuildItem.getIndex();
 
@@ -192,7 +193,7 @@ public class ResteasyServerCommonProcessor {
 
         Collection<AnnotationInstance> paths = index.getAnnotations(ResteasyDotNames.PATH);
 
-        if (paths.isEmpty()) {
+        if (paths.isEmpty() && jaxRsResourceBuildItems.isEmpty()) {
             // no detected @Path, bail out
             return;
         }
@@ -236,6 +237,11 @@ public class ResteasyServerCommonProcessor {
                 reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, className));
                 resources.add(className);
             }
+        }
+        // add resources produced by other extensions
+        for (JaxRsResourceBuildItem jaxRsResourceBuildItem : jaxRsResourceBuildItems) {
+            reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, jaxRsResourceBuildItem.getClassName()));
+            resources.add(jaxRsResourceBuildItem.getClassName());
         }
 
         // generate default constructors for suitable concrete @Path classes that don't have them
