@@ -167,6 +167,16 @@
     "artifactId": "quarkus-keycloak"
   },
   {
+    "name": "KIE (Drools and jBPM)",
+    "labels": [
+      "kie",
+      "drools",
+      "jbpm"
+    ],
+    "groupId": "io.quarkus",
+    "artifactId": "quarkus-kie"
+  },
+  {
     "name": "Kotlin",
     "labels": [
       "kotlin"

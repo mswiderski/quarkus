@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.quarkus.drools;
+package io.quarkus.kie.drools;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -1,7 +1,7 @@
 package org.drools.simple.candrink
 
-import io.quarkus.drools.Person
-import io.quarkus.drools.Result
+import io.quarkus.kie.drools.Person
+import io.quarkus.kie.drools.Result
 
 rule R1 when
         $r : Result()
@@ -16,4 +16,3 @@ rule R2 when
     then
         $r.setValue( $p.getName() + " can NOT drink");
 end
-

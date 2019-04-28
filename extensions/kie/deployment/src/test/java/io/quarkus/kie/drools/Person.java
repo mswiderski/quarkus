@@ -1,4 +1,4 @@
-package io.quarkus.drools;
+package io.quarkus.kie.drools;
 
 public class Person {
     String name;

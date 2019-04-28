@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.quarkus.drools;
+package io.quarkus.kie.drools;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -45,7 +45,7 @@ public class RuntimeTest {
     KieRuntimeBuilder runtimeBuilder;
 
     @Test
-    public void testHealthServlet() {
+    public void testRuleEvaluation() {
         KieSession ksession = runtimeBuilder.newKieSession();
 
         Result result = new Result();

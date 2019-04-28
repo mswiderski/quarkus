@@ -24,15 +24,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.drools.compiler.commons.jci.compilers.CompilationResult;
 import org.drools.compiler.commons.jci.compilers.JavaCompiler;
 import org.drools.compiler.compiler.io.memory.MemoryFileSystem;
 import org.drools.compiler.rule.builder.dialect.java.JavaDialectConfiguration;
 import org.drools.modelcompiler.builder.JavaParserCompiler;
-import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.kie.submarine.codegen.ApplicationGenerator;
 import org.kie.submarine.codegen.GeneratedFile;
 import org.kie.submarine.codegen.process.ProcessCodegen;
@@ -46,9 +43,11 @@ import io.quarkus.deployment.builditem.ArchiveRootBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
 import io.quarkus.deployment.builditem.substrate.ReflectiveClassBuildItem;
-import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
+import io.quarkus.resteasy.server.common.deployment.JaxRsResourceBuildItem;
 
 public class KieAssetsProcessor {
+
+    private final transient String generatedClassesDir = System.getProperty("quarkus.debug.generated-classes-dir");
 
     @BuildStep(providesCapabilities = "io.quarkus.kie")
     FeatureBuildItem featureBuildItem() {
@@ -61,7 +60,7 @@ public class KieAssetsProcessor {
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
             BuildProducer<GeneratedClassBuildItem> generatedClasses,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-            BuildProducer<ServletInitParamBuildItem> servletContextParams) throws IOException {
+            BuildProducer<JaxRsResourceBuildItem> jaxRsResources) throws IOException {
 
         boolean generateRuleUnits = true;
         boolean generateProcesses = true;
@@ -74,25 +73,18 @@ public class KieAssetsProcessor {
 
         compileAndRegister(generatedFiles, generatedBeans, generatedClasses);
 
-        Set<String> resources = new HashSet<>();
-
         for (GeneratedFile entry : generatedFiles) {
             String className = toClassName(entry.relativePath());
             if (entry.getType().equals(GeneratedFile.Type.REST)) {
-                reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, className));
-                resources.add(className);
+                jaxRsResources.produce(new JaxRsResourceBuildItem(className));
             }
-        }
-        if (!resources.isEmpty()) {
-            servletContextParams.produce(
-                    new ServletInitParamBuildItem(ResteasyContextParameters.RESTEASY_SCANNED_RESOURCES,
-                            String.join(",", resources)));
         }
 
     }
 
     private void compileAndRegister(Collection<GeneratedFile> generatedFiles,
-            BuildProducer<GeneratedBeanBuildItem> generatedBeans, BuildProducer<GeneratedClassBuildItem> generatedClasses) {
+            BuildProducer<GeneratedBeanBuildItem> generatedBeans, BuildProducer<GeneratedClassBuildItem> generatedClasses)
+            throws IOException {
         if (generatedFiles.isEmpty()) {
             return;
         }
@@ -109,6 +101,8 @@ public class KieAssetsProcessor {
             sources[index++] = fileName;
 
             srcMfs.write(fileName, entry.contents());
+
+            writeGeneratedFile(entry);
         }
 
         CompilationResult result = javaCompiler.compile(sources, srcMfs, trgMfs, this.getClass().getClassLoader());
@@ -186,5 +180,21 @@ public class KieAssetsProcessor {
             sourceName = sourceName.substring(0, sourceName.length() - 6);
         }
         return sourceName.replace('/', '.');
+    }
+
+    private void writeGeneratedFile(GeneratedFile f) throws IOException {
+        if (generatedClassesDir == null) {
+            return;
+        }
+
+        Files.write(
+                pathOf(f.relativePath()),
+                f.contents());
+    }
+
+    private Path pathOf(String end) {
+        Path path = Paths.get(generatedClassesDir, end);
+        path.getParent().toFile().mkdirs();
+        return path;
     }
 }
