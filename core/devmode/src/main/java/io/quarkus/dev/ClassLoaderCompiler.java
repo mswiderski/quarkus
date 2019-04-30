@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,5 +154,16 @@ public class ClassLoaderCompiler {
                 }
             }
         }
+    }
+
+    public boolean isPathModified(final Path resource, Path sourcesDir, Path classesDir, String matchingExtension,
+            long sourceMod) {
+        for (CompilationProvider compilationProvider : compilationProviders) {
+            if (matchingExtension.equals(compilationProvider.handledExtension())) {
+                return compilationProvider.resourceModified(resource, sourcesDir, classesDir, matchingExtension, sourceMod);
+            }
+        }
+
+        return false;
     }
 }

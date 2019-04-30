@@ -105,7 +105,8 @@ public class KieAssetsProcessor {
             writeGeneratedFile(entry);
         }
 
-        CompilationResult result = javaCompiler.compile(sources, srcMfs, trgMfs, this.getClass().getClassLoader());
+        CompilationResult result = javaCompiler.compile(sources, srcMfs, trgMfs,
+                Thread.currentThread().getContextClassLoader());
 
         if (result.getErrors().length > 0) {
 

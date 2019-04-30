@@ -244,13 +244,8 @@ public class RuntimeUpdatesProcessor implements HotReplacementContext {
 
             Optional<String> matchingExtension = matchingHandledExtension(p);
             if (matchingExtension.isPresent()) {
-                String pathName = sourcesDir.relativize(p).toString();
-                String classFileName = pathName.substring(0, pathName.length() - matchingExtension.get().length()) + ".class";
-                Path classFile = classesDir.resolve(classFileName);
-                if (!Files.exists(classFile)) {
-                    return true;
-                }
-                return sourceMod > Files.getLastModifiedTime(classFile).toMillis();
+
+                return compiler.isPathModified(p, sourcesDir, classesDir, matchingExtension.get(), sourceMod);
             } else {
                 return false;
             }
