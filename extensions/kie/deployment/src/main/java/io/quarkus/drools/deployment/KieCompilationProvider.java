@@ -24,7 +24,7 @@ public class KieCompilationProvider extends JavaCompilationProvider {
     }
 
     @Override
-    public boolean resourceModified(Path resource, Path sourcesDir, Path classesDir, String matchingExtension, long sourceMod) {
+    public boolean isCompiledPathModified(Path resource, Path sourcesDir, Path classesDir, long sourceMod) {
         return false;
     }
 

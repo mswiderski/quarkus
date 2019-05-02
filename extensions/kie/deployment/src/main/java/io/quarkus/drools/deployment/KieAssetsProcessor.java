@@ -19,6 +19,7 @@ import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,6 +43,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.ArchiveRootBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
+import io.quarkus.deployment.builditem.HotDeploymentConfigFileBuildItem;
 import io.quarkus.deployment.builditem.substrate.ReflectiveClassBuildItem;
 import io.quarkus.resteasy.server.common.deployment.JaxRsResourceBuildItem;
 
@@ -53,6 +55,25 @@ public class KieAssetsProcessor {
     FeatureBuildItem featureBuildItem() {
         return new FeatureBuildItem("kie");
     }
+
+    //    @BuildStep
+    //    void collectKieAssets(ArchiveRootBuildItem root,
+    //            BuildProducer<HotDeploymentConfigFileBuildItem> hotdeployConfig) {
+    //
+    //        try {
+    //            Path projectPath = Paths
+    //                    .get((root.getPath().toString().endsWith("target/classes") ? root.getPath().getParent().getParent()
+    //                            : root.getPath()).toString(), "src", "main");
+    //
+    //            Files.walk(projectPath).filter(p -> p.toString().endsWith(".bpmn"))
+    //                    .forEach(p -> {
+    //                        hotdeployConfig.produce(new HotDeploymentConfigFileBuildItem(p.toString()));
+    //                    });
+    //        } catch (IOException e) {
+    //            // TODO Auto-generated catch block
+    //            e.printStackTrace();
+    //        }
+    //    }
 
     @BuildStep
     @Record(STATIC_INIT)

@@ -2,6 +2,8 @@ package io.quarkus.dev;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +55,21 @@ public class JavaCompilationProvider implements CompilationProvider {
             }
         } catch (IOException e) {
             throw new RuntimeException("Cannot close file manager", e);
+        }
+    }
+
+    @Override
+    public boolean isCompiledPathModified(Path resource, Path sourcesDir, Path classesDir, long sourceMod) {
+        String pathName = sourcesDir.relativize(resource).toString();
+        String classFileName = pathName.substring(0, pathName.length() - handledExtension().length()) + ".class";
+        Path classFile = classesDir.resolve(classFileName);
+        if (!Files.exists(classFile)) {
+            return true;
+        }
+        try {
+            return sourceMod > Files.getLastModifiedTime(classFile).toMillis();
+        } catch (IOException e) {
+            return false;
         }
     }
 }

@@ -156,11 +156,11 @@ public class ClassLoaderCompiler {
         }
     }
 
-    public boolean isPathModified(final Path resource, Path sourcesDir, Path classesDir, String matchingExtension,
+    public boolean isCompiledModified(final Path resource, Path sourcesDir, Path classesDir, String matchingExtension,
             long sourceMod) {
         for (CompilationProvider compilationProvider : compilationProviders) {
             if (matchingExtension.equals(compilationProvider.handledExtension())) {
-                return compilationProvider.resourceModified(resource, sourcesDir, classesDir, matchingExtension, sourceMod);
+                return compilationProvider.isCompiledPathModified(resource, sourcesDir, classesDir, sourceMod);
             }
         }
 

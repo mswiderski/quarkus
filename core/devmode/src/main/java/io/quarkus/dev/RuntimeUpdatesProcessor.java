@@ -107,9 +107,10 @@ public class RuntimeUpdatesProcessor implements HotReplacementContext {
         }
 
         boolean classChanged = checkForChangedClasses();
+        boolean resourceChanged = checkForChangedResources();
         boolean configFileChanged = checkForConfigFileChange();
 
-        if (classChanged || configFileChanged) {
+        if (classChanged || configFileChanged || resourceChanged) {
             DevModeMain.restartApp();
             log.infof("Hot replace total time: %ss ", Timing.convertToBigDecimalSeconds(System.nanoTime() - startNanoseconds));
             return true;
@@ -128,6 +129,49 @@ public class RuntimeUpdatesProcessor implements HotReplacementContext {
             final Set<File> changedSourceFiles;
             if (i.getSourcePath() != null) {
                 try (final Stream<Path> sourcesStream = Files.walk(Paths.get(i.getSourcePath()))) {
+                    changedSourceFiles = sourcesStream
+                            .parallel()
+                            .filter(p -> matchingHandledExtension(p).isPresent())
+                            .filter(p -> wasRecentlyModified(p, i))
+                            .map(Path::toFile)
+                            //Needing a concurrent Set, not many standard options:
+                            .collect(Collectors.toCollection(ConcurrentSkipListSet::new));
+                }
+            } else {
+                changedSourceFiles = Collections.emptySet();
+            }
+            if (!changedSourceFiles.isEmpty()) {
+                log.info("Changed source files detected, recompiling " + changedSourceFiles);
+                try {
+                    compiler.compile(i.getSourcePath(), changedSourceFiles.stream()
+                            .collect(groupingBy(this::getFileExtension, Collectors.toSet())));
+                } catch (Exception e) {
+                    DevModeMain.deploymentProblem = e;
+                    return false;
+                }
+            }
+        }
+
+        for (DevModeContext.ModuleInfo i : context.getModules()) {
+            if (i.getClassesPath() != null) {
+                try (final Stream<Path> classesStream = Files.walk(Paths.get(i.getClassesPath()))) {
+                    if (classesStream.parallel().anyMatch(p -> p.toString().endsWith(".class") && wasRecentlyModified(p, i))) {
+                        // At least one class was recently modified
+                        lastChange = System.currentTimeMillis();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    boolean checkForChangedResources() throws IOException {
+
+        for (DevModeContext.ModuleInfo i : context.getModules()) {
+            final Set<File> changedSourceFiles;
+            if (i.getResourcePath() != null) {
+                try (final Stream<Path> sourcesStream = Files.walk(Paths.get(i.getResourcePath()))) {
                     changedSourceFiles = sourcesStream
                             .parallel()
                             .filter(p -> matchingHandledExtension(p).isPresent())
@@ -245,7 +289,7 @@ public class RuntimeUpdatesProcessor implements HotReplacementContext {
             Optional<String> matchingExtension = matchingHandledExtension(p);
             if (matchingExtension.isPresent()) {
 
-                return compiler.isPathModified(p, sourcesDir, classesDir, matchingExtension.get(), sourceMod);
+                return compiler.isCompiledModified(p, sourcesDir, classesDir, matchingExtension.get(), sourceMod);
             } else {
                 return false;
             }
