@@ -44,6 +44,8 @@ import io.quarkus.runtime.LaunchMode;
 
 public class KogitoAssetsProcessor {
 
+    private static boolean IS_HOT_RELOAD = false;
+
     private final transient String generatedClassesDir = System.getProperty("quarkus.debug.generated-classes-dir");
 
     @BuildStep(providesCapabilities = "io.quarkus.kogito")
@@ -73,16 +75,9 @@ public class KogitoAssetsProcessor {
 
     private boolean hotReload(LaunchMode launchMode) {
         if (launchMode == LaunchMode.DEVELOPMENT) {
-            Path kogitoPath = Paths.get("devmode.kogito");
-            if (Files.exists(kogitoPath)) {
-                return true;
-            } else {
-                try {
-                    Files.write(kogitoPath, new byte[0]);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            boolean hotReload = IS_HOT_RELOAD;
+            IS_HOT_RELOAD = true;
+            return hotReload;
         }
         return false;
     }
