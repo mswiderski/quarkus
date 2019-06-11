@@ -308,5 +308,3 @@ curl -X POST http://localhost:8080/persons/2/ChildrenHandling/1 \
     -H 'accept: application/json' \
     -d '{}'
 ----
-
-== References
