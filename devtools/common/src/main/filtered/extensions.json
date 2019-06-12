@@ -190,7 +190,9 @@
   {
     "name": "Kogito",
     "labels": [
-      "kogito"
+      "kogito",
+      "drools",
+      "jbpm"
     ],
     "groupId": "io.quarkus",
     "artifactId": "quarkus-kogito",
