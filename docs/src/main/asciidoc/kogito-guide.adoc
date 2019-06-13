@@ -10,29 +10,25 @@ include::./attributes.adoc[]
 This guide demonstrates how your {project-name} application can use Kogito to add business automation
 to power it up with business processes and rules.
 
-Kogito is a next generation business automation toolkit that originates from well know Open Source projects
+Kogito is a next generation business automation toolkit that originates from well known Open Source projects
 Drools (for business rules) and jBPM (for business processes). Kogito aims at providing another approach
-to business automation where the main message is to expose you business knowledge (processes, rules and decisions)
-in domain specific way.
-
-You can find more information about Kogito in https://kogito.kie.org/[Kogito website].
+to business automation where the main message is to expose your business knowledge (processes, rules and decisions)
+in a domain specific way.
 
 == Prerequisites
 
 To complete this guide, you need:
 
 * less than 15 minutes
-* an IDE (preferred Eclipse with BPMN modeller plugin)
+* an IDE (Eclipse is preferred with the BPMN modeller plugin)
 * JDK 1.8+ installed with `JAVA_HOME` configured appropriately
 * Apache Maven 3.5.3+
 * Docker
 
 === Install Eclipse with modelling plugins
 
-To be able to make use of visual modelling of your processes download Eclipse IDE and
-install from Market place
-
-* Eclipse BPMN2 Modeler plugin (with jBPM Runtime Extension)
+To be able to make use of visual modelling of your processes, download Eclipse IDE and
+install from Market place Eclipse BPMN2 Modeller plugin (with jBPM Runtime Extension)
 
 == Architecture
 
@@ -41,17 +37,17 @@ In this example, we build a very simple microservice which offers one REST endpo
 * `/persons`
 
 This endpoint will be automatically generated based on business process, that in turn will
-make use of business rules to make certain decisions based on the data being processed by the process.
+make use of business rules to make certain decisions based on the data being processed.
 
 === Business process
 
-Business process will be responsible for encapsulating business logic of our microservice.
-It should provide complete set of steps to achieve particular business goal.
+The business process will be responsible for encapsulating business logic of our microservice.
+It should provide complete set of steps to achieve a business goal.
 At the same time this is the entry point to the service that can be consumed by clients.
 
 === Business rule
 
-Business rule allows to externalise decision logic into reusable pieces that can be easily
+A business rule allows to externalise decision logic into reusable pieces that can be easily
 used in declarative way. There are multiple ways of writing rules like decision tables,
 decision trees, rules, etc. For this example we focus on the rule format backed by DRL
 (Drools Rule Language).
@@ -149,13 +145,13 @@ then
 end
 ----
 
-This is really a simple rule that marks person who is older that 18 years as an adult.
+This is really a simple rule that marks a person who is older that 18 years as an adult.
 
 Finally we create a business process that will make use of this rule and some other
-activities to approve a given person. Using eclipse wizard create `persons.bpmn` inside
- `src/main/resources/org/acme/kogito` folder of the generated project.
+activities to approve a given person. Using new item wizard (File -> New -> Other -> BPMN2 Model)
+create `persons.bpmn` inside `src/main/resources/org/acme/kogito` folder of the generated project.
 
-This process should consists of
+This process should consist of
 
 * start event
 * business rule task
@@ -165,18 +161,18 @@ This process should consists of
 
 And should look like
 
-image:kogito-guide-screenshot.png[alt=Architecture]
+image:kogito-guide-screenshot.png[alt=Process definition]
 
-To get started quickly copy the process definition from
+To get started quickly copy the process definition from the
 {quickstarts-tree-url}/using-kogito/src/main/resources/org/acme/kogito/persons.bpmn2[quickstart]
 
 To model this process yourself, just follow these steps (start event should be automatically added)
 
-* define process variable with name `person` of type `org.acme.kogito.model.Person`
+* define a process variable with name `person` of type `org.acme.kogito.model.Person`
 * drag the Tasks -> Business Rule Task from the palette and drop it next to start event, link it with start event
 ** double click on the business rule task
 *** on tab I/O Parameters, set data input and output (map `person` process variable to input data with name `person` and same for data output)
-*** on tab Business Rule Task, set rule flow group to the value defined in drl file (`person`)
+*** on tab Business Rule Task, set rule flow group to the value defined in the drl file (`person`)
 * drag the Gateways -> XOR gateway from the palette and drop it next to the business rule task, link it with rule task
 * drag the Tasks -> User Task from the palette and drop it next to the gateway, link it with gateway
 ** double click on the user task
@@ -205,7 +201,7 @@ First compile it:
 
 [source,bash]
 ----
-mvn package
+./mvnw package
 ----
 
 Then run it:
@@ -228,7 +224,7 @@ let's build again by enabling the `native` profile:
 
 [source,bash]
 ----
-mvn package -Dnative
+./mvnw package -Dnative
 ----
 
 After getting a cup of coffee, you'll be able to run this binary directly:
@@ -240,7 +236,7 @@ After getting a cup of coffee, you'll be able to run this binary directly:
 
 == Testing the Application
 
-To test your application it, just send request to the service with giving the person as JSON
+To test your application, just send request to the service with giving the person as JSON
 payload.
 
 [source,bash]
@@ -251,7 +247,7 @@ curl -X POST http://localhost:8080/persons \
     -d '{"person": {"name":"John Quark", "age": 20}}'
 ----
 
-In response person should be approved as adult and that should also be visible in response payload.
+In the response, the person should be approved as an adult and that should also be visible in the response payload.
 
 [source,JSON]
 ----
@@ -267,7 +263,7 @@ curl -X GET http://localhost:8080/persons \
     -H 'accept: application/json'
 ----
 
-To verify the non adult case, send another request with age less than 18
+To verify the non adult case, send another request with the age set to less than 18
 
 [source,bash]
 ----
@@ -286,7 +282,7 @@ curl -X GET http://localhost:8080/persons/2/tasks \
     -H 'accept: application/json'
 ----
 
-You can get details of the task by calling another endpoint
+You can get the details of the task by calling another endpoint
 
 [source,bash]
 ----
@@ -295,7 +291,7 @@ curl -X GET http://localhost:8080/persons/2/ChildrenHandling/1 \
     -H 'accept: application/json'
 ----
 
-You can complete this person evaluation process instance by calling same endpoint but with POST
+You can complete this person evaluation process instance by calling the same endpoint but with POST
 
 [source,bash]
 ----
