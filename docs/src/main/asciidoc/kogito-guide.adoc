@@ -89,11 +89,7 @@ Let's start by implementing the simple data object `Person`. As you can see from
 ----
 package org.acme.kogito.model;
 
-import java.io.Serializable;
-
-public class Person implements Serializable {
-
-	private static final long serialVersionUID = -571683427125356701L;
+public class Person {
 
 	private String name;
 	private int age;
@@ -132,7 +128,7 @@ public class Person implements Serializable {
 
 ----
 
-Next, we create a rule file `person-rules.drl` inside the src/main/resources/org/acme/kogito folder of
+Next, we create a rule file `person-rules.drl` inside the `src/main/resources/org/acme/kogito` folder of
 the generated project.
 
 [source,plain]
@@ -157,7 +153,7 @@ This is really a simple rule that marks person who is older that 18 years as an 
 
 Finally we create a business process that will make use of this rule and some other
 activities to approve a given person. Using eclipse wizard create `persons.bpmn` inside
- src/main/resources/org/acme/kogito folder of the generated project.
+ `src/main/resources/org/acme/kogito` folder of the generated project.
 
 This process should consists of
 
@@ -219,7 +215,7 @@ Then run it:
 java -jar ./target/using-kogito-runner.jar
 ----
 
-=== Runing in Native Mode
+=== Running in Native Mode
 
 This same demo can be compiled into native code: no modifications required.
 
