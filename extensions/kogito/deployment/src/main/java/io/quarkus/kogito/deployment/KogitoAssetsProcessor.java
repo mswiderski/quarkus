@@ -29,6 +29,9 @@ import org.drools.compiler.commons.jci.compilers.JavaCompiler;
 import org.drools.compiler.commons.jci.compilers.JavaCompilerSettings;
 import org.drools.compiler.compiler.io.memory.MemoryFileSystem;
 import org.drools.modelcompiler.builder.JavaParserCompiler;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
 import org.kie.kogito.codegen.ApplicationGenerator;
 import org.kie.kogito.codegen.GeneratedFile;
 import org.kie.kogito.codegen.process.ProcessCodegen;
@@ -38,13 +41,13 @@ import io.quarkus.arc.deployment.GeneratedBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.ArchiveRootBuildItem;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.LaunchModeBuildItem;
+import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.runtime.LaunchMode;
 
 public class KogitoAssetsProcessor {
-
-    private static boolean IS_HOT_RELOAD = false;
 
     private final transient String generatedClassesDir = System.getProperty("quarkus.debug.generated-classes-dir");
 
@@ -56,30 +59,26 @@ public class KogitoAssetsProcessor {
     @BuildStep
     public void generateModel(ArchiveRootBuildItem root,
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
-            LaunchModeBuildItem launchMode) throws IOException {
+            CombinedIndexBuildItem combinedIndexBuildItem,
+            LaunchModeBuildItem launchMode,
+            LiveReloadBuildItem liveReload) throws IOException {
 
-        if (hotReload(launchMode.getLaunchMode())) {
+        if (liveReload.isLiveReload()) {
             return;
         }
 
         boolean generateRuleUnits = true;
         boolean generateProcesses = true;
 
-        ApplicationGenerator appGen = createApplicationGenerator(root, launchMode.getLaunchMode(), generateRuleUnits,
-                generateProcesses);
+        ApplicationGenerator appGen = createApplicationGenerator(root,
+                launchMode.getLaunchMode(),
+                generateRuleUnits,
+                generateProcesses,
+                combinedIndexBuildItem);
 
         Collection<GeneratedFile> generatedFiles = appGen.generate();
 
         compileAndRegister(root, generatedFiles, generatedBeans, launchMode.getLaunchMode());
-    }
-
-    private boolean hotReload(LaunchMode launchMode) {
-        if (launchMode == LaunchMode.DEVELOPMENT) {
-            boolean hotReload = IS_HOT_RELOAD;
-            IS_HOT_RELOAD = true;
-            return hotReload;
-        }
-        return false;
     }
 
     private void compileAndRegister(ArchiveRootBuildItem root, Collection<GeneratedFile> generatedFiles,
@@ -137,7 +136,8 @@ public class KogitoAssetsProcessor {
     }
 
     private ApplicationGenerator createApplicationGenerator(ArchiveRootBuildItem root, LaunchMode launchMode,
-            boolean generateRuleUnits, boolean generateProcesses) throws IOException {
+            boolean generateRuleUnits, boolean generateProcesses, CombinedIndexBuildItem combinedIndexBuildItem)
+            throws IOException {
         Path targetClassesPath = root.getPath();
         Path projectPath = targetClassesPath.toString().endsWith("target/classes") ? targetClassesPath.getParent().getParent()
                 : targetClassesPath;
@@ -149,45 +149,44 @@ public class KogitoAssetsProcessor {
 
         if (generateRuleUnits) {
             appGen.withGenerator(RuleCodegen.ofPath(projectPath, launchMode == LaunchMode.DEVELOPMENT))
-                    .withRuleEventListenersConfig(customRuleEventListenerConfigExists(projectPath, appPackageName));
+                    .withRuleEventListenersConfig(customRuleEventListenerConfigExists(projectPath, appPackageName,
+                            combinedIndexBuildItem.getIndex()));
         }
 
         if (generateProcesses) {
             appGen.withGenerator(ProcessCodegen.ofPath(projectPath))
                     .withWorkItemHandlerConfig(
-                            customWorkItemConfigExists(projectPath, appPackageName))
+                            customWorkItemConfigExists(projectPath, appPackageName, combinedIndexBuildItem.getIndex()))
                     .withProcessEventListenerConfig(
-                            customProcessListenerConfigExists(projectPath, appPackageName));
+                            customProcessListenerConfigExists(projectPath, appPackageName, combinedIndexBuildItem.getIndex()));
         }
 
         return appGen;
     }
 
-    private String customWorkItemConfigExists(Path projectPath, String appPackageName) {
-        String sourceDir = Paths.get(projectPath.toString(), "src").toString();
+    private String customWorkItemConfigExists(Path projectPath, String appPackageName, IndexView index) {
         String workItemHandlerConfigClass = ProcessCodegen.defaultWorkItemHandlerConfigClass(appPackageName);
-        Path p = Paths.get(sourceDir,
-                "main/java",
-                workItemHandlerConfigClass.replace('.', '/') + ".java");
-        return Files.exists(p) ? workItemHandlerConfigClass : null;
+
+        ClassInfo workItemHandlerConfigClassInfo = index
+                .getClassByName(createDotName(workItemHandlerConfigClass));
+
+        return workItemHandlerConfigClassInfo != null ? workItemHandlerConfigClass : null;
     }
 
-    private String customProcessListenerConfigExists(Path projectPath, String appPackageName) {
-        String sourceDir = Paths.get(projectPath.toString(), "src").toString();
+    private String customProcessListenerConfigExists(Path projectPath, String appPackageName, IndexView index) {
         String processEventListenerClass = ProcessCodegen.defaultProcessListenerConfigClass(appPackageName);
-        Path p = Paths.get(sourceDir,
-                "main/java",
-                processEventListenerClass.replace('.', '/') + ".java");
-        return Files.exists(p) ? processEventListenerClass : null;
+        ClassInfo processEventListenerClassInfo = index
+                .getClassByName(createDotName(processEventListenerClass));
+
+        return processEventListenerClassInfo != null ? processEventListenerClass : null;
     }
 
-    private String customRuleEventListenerConfigExists(Path projectPath, String appPackageName) {
-        String sourceDir = Paths.get(projectPath.toString(), "src").toString();
+    private String customRuleEventListenerConfigExists(Path projectPath, String appPackageName, IndexView index) {
         String ruleEventListenerConfiglass = RuleCodegen.defaultRuleEventListenerConfigClass(appPackageName);
-        Path p = Paths.get(sourceDir,
-                "main/java",
-                ruleEventListenerConfiglass.replace('.', '/') + ".java");
-        return Files.exists(p) ? ruleEventListenerConfiglass : null;
+        ClassInfo ruleEventListenerConfiglassInfo = index
+                .getClassByName(createDotName(ruleEventListenerConfiglass));
+
+        return ruleEventListenerConfiglassInfo != null ? ruleEventListenerConfiglass : null;
     }
 
     private String toRuntimeSource(String className) {
@@ -221,4 +220,22 @@ public class KogitoAssetsProcessor {
         path.getParent().toFile().mkdirs();
         return path;
     }
+
+    private DotName createDotName(String name) {
+        int lastDot = name.indexOf('.');
+        if (lastDot < 0) {
+            return DotName.createComponentized(null, name);
+        }
+
+        DotName lastDotName = null;
+        while (lastDot > 0) {
+            String local = name.substring(0, lastDot);
+            name = name.substring(lastDot + 1);
+            lastDot = name.indexOf('.');
+            lastDotName = DotName.createComponentized(lastDotName, local);
+        }
+
+        return DotName.createComponentized(lastDotName, name);
+    }
+
 }
