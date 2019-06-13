@@ -1,9 +1,11 @@
 package io.quarkus.kogito.drools;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 
-import io.quarkus.test.QuarkusUnitTest;
 import javax.inject.Inject;
+
 import org.drools.modelcompiler.KieRuntimeBuilder;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -12,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kie.api.runtime.KieSession;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.quarkus.test.QuarkusUnitTest;
 
 public class RuntimeTest {
 

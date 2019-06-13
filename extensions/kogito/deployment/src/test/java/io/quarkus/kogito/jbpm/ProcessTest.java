@@ -1,11 +1,13 @@
 package io.quarkus.kogito.jbpm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import io.quarkus.test.QuarkusUnitTest;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -15,7 +17,7 @@ import org.kie.kogito.Model;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.quarkus.test.QuarkusUnitTest;
 
 public class ProcessTest {
 

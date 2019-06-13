@@ -1,5 +1,7 @@
 package io.quarkus.kogito.deployment;
 
+import static java.util.Arrays.asList;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +11,6 @@ import java.util.Set;
 import org.kie.kogito.codegen.ApplicationGenerator;
 import org.kie.kogito.codegen.Generator;
 import org.kie.kogito.codegen.process.ProcessCodegen;
-
-import static java.util.Arrays.asList;
 
 public class ProcessCompilationProvider extends KogitoCompilationProvider {
 
