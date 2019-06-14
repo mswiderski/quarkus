@@ -37,7 +37,7 @@ public class KogitoAssetsProcessor {
 
     @BuildStep(providesCapabilities = "io.quarkus.kogito")
     FeatureBuildItem featureBuildItem() {
-        return new FeatureBuildItem("kogito");
+        return new FeatureBuildItem(FeatureBuildItem.KOGITO);
     }
 
     @BuildStep
