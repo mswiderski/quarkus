@@ -21,7 +21,6 @@ import org.drools.compiler.commons.jci.compilers.JavaCompilerSettings;
 import org.drools.compiler.compiler.io.memory.MemoryFileSystem;
 import org.drools.compiler.kproject.models.KieModuleModelImpl;
 import org.drools.core.base.ClassFieldAccessorFactory;
-import org.drools.modelcompiler.builder.GeneratedFile;
 import org.drools.modelcompiler.builder.JavaParserCompiler;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.CompositeIndex;
@@ -34,6 +33,9 @@ import org.kie.api.builder.model.KieModuleModel;
 import org.kie.internal.kogito.codegen.Generated;
 import org.kie.kogito.Model;
 import org.kie.kogito.codegen.ApplicationGenerator;
+import org.kie.kogito.codegen.GeneratedFile;
+import org.kie.kogito.codegen.GeneratorContext;
+import org.kie.kogito.codegen.context.QuarkusKogitoBuildContext;
 import org.kie.kogito.codegen.decision.DecisionCodegen;
 import org.kie.kogito.codegen.di.CDIDependencyInjectionAnnotator;
 import org.kie.kogito.codegen.process.ProcessCodegen;
@@ -234,11 +236,11 @@ public class KogitoAssetsProcessor {
         String[] sources = new String[generatedFiles.size()];
         int index = 0;
         for (GeneratedFile entry : generatedFiles) {
-            String generatedClassFile = entry.getPath().replace("src/main/java/", "");
+            String generatedClassFile = entry.relativePath().replace("src/main/java/", "");
             String fileName = toRuntimeSource(toClassName(generatedClassFile));
             sources[index++] = fileName;
 
-            srcMfs.write(fileName, entry.getData());
+            srcMfs.write(fileName, entry.contents());
 
             String location = generatedClassesDir;
             if (launchMode == LaunchMode.DEVELOPMENT) {
@@ -301,11 +303,15 @@ public class KogitoAssetsProcessor {
         boolean usePersistence = combinedIndexBuildItem.getIndex()
                 .getClassByName(createDotName(persistenceFactoryClass)) != null;
 
+        GeneratorContext context = GeneratorContext.ofResourcePath(projectPath.resolve("src/main/resources").toFile());
+        context.withBuildContext(new QuarkusKogitoBuildContext());
+
         ApplicationGenerator appGen = new ApplicationGenerator(appPackageName, new File(projectPath.toFile(), "target"))
                 .withDependencyInjection(new CDIDependencyInjectionAnnotator())
                 .withPersistence(usePersistence)
                 .withMonitoring(combinedIndexBuildItem.getIndex()
-                        .getClassByName(createDotName(metricsClass)) != null);
+                        .getClassByName(createDotName(metricsClass)) != null)
+                .withGeneratorContext(context);
 
         if (generateRuleUnits) {
             Path moduleXmlPath = projectPath.resolve("src/main/resources").resolve(KieModuleModelImpl.KMODULE_JAR_PATH);
@@ -358,10 +364,10 @@ public class KogitoAssetsProcessor {
         if (location == null) {
             return;
         }
-        String generatedClassFile = f.getPath().replace("src/main/java", "");
+        String generatedClassFile = f.relativePath().replace("src/main/java", "");
         Files.write(
                 pathOf(location, generatedClassFile),
-                f.getData());
+                f.contents());
     }
 
     private Path pathOf(String location, String end) {
