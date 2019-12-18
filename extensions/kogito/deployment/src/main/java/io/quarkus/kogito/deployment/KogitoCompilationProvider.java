@@ -44,9 +44,9 @@ public abstract class KogitoCompilationProvider extends JavaCompilationProvider 
             ApplicationGenerator appGen = new ApplicationGenerator(appPackageName, outputDirectory)
                     .withDependencyInjection(new CDIDependencyInjectionAnnotator())
                     .withGeneratorContext(generationContext);
-            Generator generator = addGenerator(appGen, filesToCompile, context);
+            addGenerator(appGen, filesToCompile, context);
 
-            Collection<GeneratedFile> generatedFiles = generator.generate();
+            Collection<GeneratedFile> generatedFiles = appGen.generate();
 
             HashSet<File> generatedSourceFiles = new HashSet<>();
             for (GeneratedFile file : generatedFiles) {
