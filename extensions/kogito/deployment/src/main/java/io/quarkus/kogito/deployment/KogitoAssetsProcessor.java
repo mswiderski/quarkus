@@ -338,7 +338,7 @@ public class KogitoAssetsProcessor {
         }
 
         if (generateDecisions) {
-            appGen.withGenerator(DecisionCodegen.ofPath(projectPath));
+            appGen.withGenerator(DecisionCodegen.ofPath(projectPath.resolve("src/main/resources")));
         }
 
         return appGen;
