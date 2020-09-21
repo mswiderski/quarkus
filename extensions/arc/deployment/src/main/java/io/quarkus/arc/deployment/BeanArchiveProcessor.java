@@ -28,6 +28,7 @@ import io.quarkus.deployment.ApplicationArchive;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.ApplicationArchivesBuildItem;
+import io.quarkus.deployment.builditem.ExtraIndexBuildItem;
 import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.index.IndexDependencyConfig;
@@ -49,6 +50,9 @@ public class BeanArchiveProcessor {
 
     @Inject
     BuildProducer<GeneratedClassBuildItem> generatedClass;
+
+    @Inject
+    BuildProducer<ExtraIndexBuildItem> extraIndexBuildItem;
 
     ArcConfig config;
 
@@ -72,26 +76,29 @@ public class BeanArchiveProcessor {
         }
         Set<DotName> generatedClassNames = new HashSet<>();
         for (GeneratedBeanBuildItem generatedBeanClass : generatedBeans) {
-            IndexingUtil.indexClass(generatedBeanClass.getName(), additionalBeanIndexer, applicationIndex, additionalIndex,
-                    Thread.currentThread().getContextClassLoader(),
-                    generatedBeanClass.getData());
+            IndexingUtil.indexClass(generatedBeanClass.getName(), additionalBeanIndexer, applicationIndex,
+                    additionalIndex, Thread.currentThread().getContextClassLoader(), generatedBeanClass.getData());
             generatedClassNames.add(DotName.createSimple(generatedBeanClass.getName().replace('/', '.')));
-            generatedClass.produce(new GeneratedClassBuildItem(true, generatedBeanClass.getName(), generatedBeanClass.getData(),
-                    generatedBeanClass.getSource()));
+            generatedClass.produce(new GeneratedClassBuildItem(true, generatedBeanClass.getName(),
+                    generatedBeanClass.getData(), generatedBeanClass.getSource()));
         }
 
-        BeanArchives.PersistentClassIndex index = liveReloadBuildItem.getContextObject(BeanArchives.PersistentClassIndex.class);
+        BeanArchives.PersistentClassIndex index = liveReloadBuildItem
+                .getContextObject(BeanArchives.PersistentClassIndex.class);
         if (index == null) {
             index = new BeanArchives.PersistentClassIndex();
             liveReloadBuildItem.setContextObject(BeanArchives.PersistentClassIndex.class, index);
         }
 
         // Finally, index ArC/CDI API built-in classes
-        return new BeanArchiveIndexBuildItem(
-                BeanArchives.buildBeanArchiveIndex(Thread.currentThread().getContextClassLoader(), index, applicationIndex,
-                        additionalBeanIndexer.complete()),
-                generatedClassNames,
-                additionalBeans);
+        BeanArchiveIndexBuildItem i = new BeanArchiveIndexBuildItem(
+                BeanArchives.buildBeanArchiveIndex(Thread.currentThread().getContextClassLoader(), index,
+                        applicationIndex, additionalBeanIndexer.complete()),
+                generatedClassNames, additionalBeans);
+
+        extraIndexBuildItem.produce(new ExtraIndexBuildItem(i.getIndex()));
+
+        return i;
     }
 
     private IndexView buildApplicationIndex() {
@@ -115,7 +122,8 @@ public class BeanArchiveProcessor {
                 .initBeanDefiningAnnotations(additionalBeanDefiningAnnotations.stream()
                         .map(bda -> new BeanDefiningAnnotation(bda.getName(), bda.getDefaultScope()))
                         .collect(Collectors.toList()), stereotypes);
-        // Also include archives that are not bean archives but contain qualifiers or interceptor bindings
+        // Also include archives that are not bean archives but contain qualifiers or
+        // interceptor bindings
         beanDefiningAnnotations.add(DotNames.QUALIFIER);
         beanDefiningAnnotations.add(DotNames.INTERCEPTOR_BINDING);
 
@@ -126,7 +134,8 @@ public class BeanArchiveProcessor {
                 continue;
             }
             IndexView index = archive.getIndex();
-            // NOTE: Implicit bean archive without beans.xml contains one or more bean classes with a bean defining annotation and no extension
+            // NOTE: Implicit bean archive without beans.xml contains one or more bean
+            // classes with a bean defining annotation and no extension
             if (archive.getChildPath("META-INF/beans.xml") != null || archive.getChildPath("WEB-INF/beans.xml") != null
                     || (index.getAllKnownImplementors(DotNames.EXTENSION).isEmpty()
                             && containsBeanDefiningAnnotation(index, beanDefiningAnnotations))) {
