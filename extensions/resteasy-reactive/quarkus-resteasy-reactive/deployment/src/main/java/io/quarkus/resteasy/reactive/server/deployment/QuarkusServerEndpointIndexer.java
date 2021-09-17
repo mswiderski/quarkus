@@ -20,6 +20,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.resteasy.reactive.common.ResteasyReactiveConfig;
+import org.jboss.resteasy.reactive.common.model.ResourceClass;
 import org.jboss.resteasy.reactive.common.processor.DefaultProducesHandler;
 import org.jboss.resteasy.reactive.server.core.Deployment;
 import org.jboss.resteasy.reactive.server.core.parameters.converters.GeneratedParameterConverter;
@@ -75,6 +76,12 @@ public class QuarkusServerEndpointIndexer
 
     protected boolean isContextType(ClassType klass) {
         return super.isContextType(klass) || CONTEXT_TYPES.contains(klass.name());
+    }
+
+    @Override
+    public ResourceClass createEndpoints(ClassInfo classInfo) {
+        reflectiveClassProducer.produce(new ReflectiveClassBuildItem(true, false, classInfo.name().toString()));
+        return super.createEndpoints(classInfo);
     }
 
     @Override
